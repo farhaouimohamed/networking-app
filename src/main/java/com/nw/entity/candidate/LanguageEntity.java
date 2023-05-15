@@ -5,8 +5,6 @@ import lombok.*;
 
 import javax.persistence.*;
 import java.io.Serializable;
-import java.util.Date;
-
 
 @Entity
 @Getter
@@ -14,22 +12,18 @@ import java.util.Date;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@Table(name = "candidate_training")
-public class TrainingEntity implements Serializable {
+@Table(name = "candidate_language")
+public class LanguageEntity implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "training_id") private Long id;
+    @Column(name = "language_id") private Long id;
 
-    @Column(name = "center")
-    private String center;
-    @Column(name = "start_date")
-    private Date startDate;
-    @Column(name = "end_date")
-    private Date endDate;
-    private String diploma;
+    @Column(name="language_name")
+    private String languageName;
+    private String level;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_candidate_id", referencedColumnName = "candidate_id")

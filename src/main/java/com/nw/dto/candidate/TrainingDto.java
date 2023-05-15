@@ -10,13 +10,13 @@ import java.util.Date;
 public class TrainingDto {
 
     private Long id;
-    @JsonProperty("training_name")
-    private String trainingName;
+    @JsonProperty("center")
+    private String center;
     @JsonProperty("start_date")
     private Date startDate;
     @JsonProperty("end_date")
     private Date endDate;
-    private String details;
+    private String diploma;
 
     @JsonProperty("candidate_id")
     private Integer candidateId;

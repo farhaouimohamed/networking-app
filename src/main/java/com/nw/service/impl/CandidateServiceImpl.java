@@ -3,26 +3,35 @@ package com.nw.service.impl;
 import com.nw.dto.candidate.ApplicationOfferFormRequest;
 import com.nw.dto.candidate.CandidateDto;
 import com.nw.dto.candidate.InvitationDto;
+import com.nw.dto.candidate.ProjectDto;
+import com.nw.dto.recruiter.OfferDto;
+import com.nw.dto.recruiter.OfferRegistrationDto;
 import com.nw.entity.candidate.*;
 import com.nw.entity.recruter.OfferEntity;
 import com.nw.entity.recruter.OfferRegistrationEntity;
+import com.nw.entity.recruter.RecruterEntity;
 import com.nw.entity.user.UserEntity;
 import com.nw.exception.ResourceNotFoundException;
 import com.nw.mapper.CandidateMapper;
 import com.nw.repository.candidate.*;
 import com.nw.repository.recruter.OfferRegistrationRepository;
 import com.nw.repository.recruter.OfferRepository;
+import com.nw.repository.recruter.RecruterRepository;
 import com.nw.repository.user.UserRepository;
 import com.nw.service.CandidateService;
-import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.persistence.EntityNotFoundException;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -32,6 +41,8 @@ public class CandidateServiceImpl implements CandidateService {
     UserRepository userRepository;
     @Autowired
     private CandidateRepository candidateRepository;
+    @Autowired
+    private RecruterRepository recruterRepository;
     @Autowired
     private ExperienceRepository experienceRepository;
     @Autowired
@@ -43,14 +54,13 @@ public class CandidateServiceImpl implements CandidateService {
     @Autowired
     private OfferRepository offerRepository;
     @Autowired
+    private LanguageRepository languageRepository;
+    @Autowired
     private TrainingRepository trainingRepository;
     @Autowired
     private OfferRegistrationRepository offerRegistrationRepository;
     @Autowired
     private CandidateMapper candidateMapper;
-
-    @Autowired
-    private JavaMailSender emailSender;
 
     @Override
     @Transactional
@@ -63,12 +73,77 @@ public class CandidateServiceImpl implements CandidateService {
         updateProjects(candidateDto, candidateEntity);
         updateSkills(candidateDto, candidateEntity);
         updateTrainings(candidateDto, candidateEntity);
+        updateLanguages(candidateDto, candidateEntity);
         if (candidateEntity.getPoints().getXp() == 10){
             candidateEntity.getPoints().setXp(candidateEntity.getPoints().getXp() + 15);
         }
         CandidateEntity savedCandidate = candidateRepository.save(candidateEntity);
         return candidateMapper.toCandidateDto(candidateRepository.findById(savedCandidate.getId()).get());
     }
+
+    @Override
+    public List<OfferDto> getAllOffers() {
+        List<OfferDto> offerDtos = new ArrayList<>();
+        List<OfferEntity> offers = offerRepository.findAll();
+        offers.stream().forEach(offer -> {
+            RecruterEntity recruterEntity = recruterRepository.findById(offer.getRecruterEntity().getId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Recruiter not found with id " + offer.getRecruterEntity().getId()));
+            OfferDto offerDto = toOfferDto(offer);
+            offerDto.setLogo(recruterEntity.getLogo());
+            offerDto.setCompanyName(recruterEntity.getCompanyName());
+            offerDtos.add(offerDto);
+        });
+        return offerDtos;
+    }
+
+    @Override
+    public OfferDto getOfferById(Long offerId) {
+        OfferEntity offerEntity = offerRepository.findById(offerId)
+                .orElseThrow(() -> new ResourceNotFoundException("Offer not found with id " + offerId));
+        RecruterEntity recruterEntity = recruterRepository.findById(offerEntity.getRecruterEntity().getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Recruiter not found with id " + offerEntity.getRecruterEntity().getId()));
+        OfferDto offerDto = toOfferDto(offerEntity);
+        offerDto.setLogo(recruterEntity.getLogo());
+        offerDto.setCompanyName(recruterEntity.getCompanyName());
+        offerDto.setActivityDomain(recruterEntity.getActivityDomain());
+        return offerDto;
+    }
+
+    @Override
+    @Transactional
+    public CandidateDto publishProject(ProjectDto projectDto) {
+        CandidateEntity candidateEntity = candidateRepository.findById(projectDto.getCandidateId())
+                .orElseThrow(() -> new ResourceNotFoundException("Candidate not found with id " + projectDto.getCandidateId()));
+        ProjectEntity projectEntity = new ProjectEntity();
+        candidateMapper.toProjectEntity(projectEntity, projectDto);
+        candidateEntity.getProjects().add(projectEntity);
+        try{
+            String baseDir = System.getProperty("user.dir");
+            File baseDirFile = new File(baseDir);
+            String regsDir = baseDirFile.getParent() + File.separator + "career_bridge/src" + File.separator;
+            String pathImage = "assets" + File.separator + "candidate" + File.separator + "projects"
+                    + File.separator + "_" + candidateEntity.getUsername() +  File.separator;
+            File localLogoFile = new File(regsDir + pathImage + projectDto.getImage().getOriginalFilename());
+            if (!localLogoFile.exists()) {
+                localLogoFile.mkdirs();
+            }
+            projectDto.getImage().transferTo(localLogoFile);
+            projectEntity.setImage(pathImage + projectDto.getImage().getOriginalFilename());
+        } catch (IOException e){
+            e.printStackTrace();
+        }
+        projectEntity.setCandidateEntity(candidateEntity);
+        projectRepository.save(projectEntity);
+        return candidateMapper.toCandidateDto(candidateRepository.findById(candidateEntity.getId()).get());
+    }
+
+    @Override
+    public CandidateDto getCandidateById(Long candidateId) {
+        CandidateEntity candidateEntity = candidateRepository.findById(candidateId)
+                .orElseThrow(() -> new ResourceNotFoundException("Candidate not found with id " + candidateId));
+        return candidateMapper.toCandidateDto(candidateEntity);
+    }
+
 
     @Override
     @Transactional
@@ -86,7 +161,7 @@ public class CandidateServiceImpl implements CandidateService {
         message.setTo(invitationDto.getEmailFriend());
         message.setSubject("Test Subject");
         message.setText("Test Body");
-        emailSender.send(message);
+        //emailSender.send(message);
 
         candidateRepository.save(candidate);
 
@@ -103,9 +178,32 @@ public class CandidateServiceImpl implements CandidateService {
         OfferRegistrationEntity offerRegistrationEntity = new OfferRegistrationEntity();
         offerRegistrationEntity.setOfferEntity(offerEntity);
         offerRegistrationEntity.setCandidateEntity(candidateEntity);
-        offerRegistrationEntity.setCv(applicationOfferFormRequest.getCv());
-        offerRegistrationEntity.setCoverLetter(applicationOfferFormRequest.getCoverLetter());
+        try{
+            String baseDir = System.getProperty("user.dir");
+            File baseDirFile = new File(baseDir);
+            String regsDir = baseDirFile.getParent() + File.separator + "career_bridge/src" + File.separator;
+            String pathFiles = "assets" + File.separator + "candidate" + File.separator + "offerRegistration"
+                    + File.separator + "_" + candidateEntity.getUsername() +  File.separator + offerEntity.getRecruterEntity().getCompanyName()
+                    + File.separator;
+            File localCvFile = new File(regsDir + pathFiles + applicationOfferFormRequest.getCv().getOriginalFilename());
+            File localCoverLetterFile = new File(regsDir + pathFiles + applicationOfferFormRequest.getCoverLetter().getOriginalFilename());
+            if (!localCvFile.exists()) {
+                localCvFile.mkdirs();
+            }
+            if (!localCoverLetterFile.exists()) {
+                localCoverLetterFile.mkdirs();
+            }
+            applicationOfferFormRequest.getCv().transferTo(localCvFile);
+            applicationOfferFormRequest.getCoverLetter().transferTo(localCoverLetterFile);
+            offerRegistrationEntity.setCv(pathFiles + applicationOfferFormRequest.getCv().getOriginalFilename());
+            offerRegistrationEntity.setCoverLetter(pathFiles + applicationOfferFormRequest.getCoverLetter().getOriginalFilename());
+        } catch (IOException e){
+            e.printStackTrace();
+        }
         offerRegistrationEntity.setPortfolioLink(applicationOfferFormRequest.getPortfolioLink());
+        offerRegistrationEntity.setEliminated(false);
+        offerRegistrationEntity.setAccessibleTest(false);
+        offerRegistrationEntity.setStatus("En attente");
         candidateEntity.getOfferRegistrationEntity().add(offerRegistrationEntity);
         offerRegistrationRepository.save(offerRegistrationEntity);
         return candidateEntity;
@@ -115,6 +213,20 @@ public class CandidateServiceImpl implements CandidateService {
         if (userRepository.existsByEmail(email)) {
             throw new ResourceNotFoundException("Error: Email is already in use!");
         }
+    }
+
+    private OfferDto toOfferDto(OfferEntity offerEntity){
+        OfferDto offerDto = new OfferDto();
+        offerDto.setId(offerEntity.getId());
+        offerDto.setTitle(offerEntity.getTitle());
+        offerDto.setDescription(offerEntity.getDescription());
+        offerDto.setRecruterId(offerEntity.getRecruterEntity().getId());
+        offerDto.setLocalisation(offerEntity.getLocalisation());
+        offerDto.setSalaire(offerEntity.getSalaire());
+        offerDto.setNatureDeTravail(offerEntity.getNatureDeTravail());
+        offerDto.setPublicationDate(offerEntity.getPublishDate());
+        offerDto.setProfile(offerEntity.getProfile());
+        return offerDto;
     }
 
     private void updateExperiences(CandidateDto candidateDto, CandidateEntity candidateEntity){
@@ -215,5 +327,25 @@ public class CandidateServiceImpl implements CandidateService {
         candidateEntity.getTrainings().removeIf(existingTraining -> trainings.stream()
                 .anyMatch(newTraining -> newTraining.getId() != null && newTraining.getId().equals(existingTraining.getId())));
         candidateEntity.getTrainings().addAll(trainings);
+    }
+
+    private void updateLanguages(CandidateDto candidateDto, CandidateEntity candidateEntity){
+        List<LanguageEntity> languages = candidateDto.getLanguages()
+                .stream()
+                .map(languageDto -> {
+                    LanguageEntity languageEntity;
+                    if (languageDto.getId() != null) {
+                        languageEntity = languageRepository.findById(languageDto.getId())
+                                .orElseThrow(() -> new EntityNotFoundException("Language not found with id: " + languageDto.getId()));
+                    } else {
+                        languageEntity = new LanguageEntity();
+                    }
+                    candidateMapper.toLanguageEntity(languageEntity, languageDto);
+                    return languageEntity;
+                })
+                .collect(Collectors.toList());
+        candidateEntity.getLanguages().removeIf(existingLanguage -> languages.stream()
+                .anyMatch(newLanguage -> newLanguage.getId() != null && newLanguage.getId().equals(existingLanguage.getId())));
+        candidateEntity.getLanguages().addAll(languages);
     }
 }

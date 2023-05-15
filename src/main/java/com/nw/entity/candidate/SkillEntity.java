@@ -21,7 +21,7 @@ public class SkillEntity implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "skill_id") private Long id;
 
-    private String software;
+    private String skill;
     private String programming;
 
     @ManyToOne(fetch = FetchType.LAZY)

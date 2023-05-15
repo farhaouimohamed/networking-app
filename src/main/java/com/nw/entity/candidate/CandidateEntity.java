@@ -28,8 +28,11 @@ public class CandidateEntity extends UserEntity implements Serializable {
     @Column(name = "logo") private String logo;
     @Column(name = "phone_number") private Integer phoneNumber;
     @Column(name = "about_me") private String aboutMe;
+    @Column(name = "details") private String details;
     @Column(name = "is_invited") private boolean isInvited;
-
+    @Column(name = "city") private String city;
+    @Column(name = "gouvernorat") private String gouvernorat;
+    @Column(name = "profession") private String profession;
     @OneToMany(mappedBy = "candidateEntity", cascade = CascadeType.ALL)
     private List<ExperienceEntity> experiences;
 
@@ -44,6 +47,9 @@ public class CandidateEntity extends UserEntity implements Serializable {
 
     @OneToMany(mappedBy = "candidateEntity", cascade = CascadeType.ALL)
     private List<TrainingEntity> trainings;
+
+    @OneToMany(mappedBy = "candidateEntity", cascade = CascadeType.ALL)
+    private List<LanguageEntity> languages;
 
     @OneToOne(mappedBy = "candidateEntity", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
@@ -67,6 +73,7 @@ public class CandidateEntity extends UserEntity implements Serializable {
         if (this.projects == null) this.projects = new ArrayList<>();
         if (this.skills == null) this.skills = new ArrayList<>();
         if (this.trainings == null) this.trainings = new ArrayList<>();
+        if (this.languages == null) this.languages = new ArrayList<>();
         if (this.points == null) this.points = new PointEntity();
     }
 }

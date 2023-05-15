@@ -10,13 +10,11 @@ public class BackgroundDto {
 
     private Long id;
     private String university;
-    private String city;
     private String diploma;
     @JsonProperty("start_date")
     private Date startDate;
     @JsonProperty("end_date")
     private Date endDate;
-    private String details;
     @JsonProperty("candidate_id")
     private Long candidateId;
 }

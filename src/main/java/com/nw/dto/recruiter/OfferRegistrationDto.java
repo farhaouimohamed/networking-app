@@ -14,6 +14,8 @@ public class OfferRegistrationDto {
     private String firstName;
     @JsonProperty("last_name")
     private String lastName;
+    @JsonProperty("mail")
+    private String mail;
     @JsonProperty("offer_id")
     private Long offerId;
     private String cv;
@@ -21,4 +23,7 @@ public class OfferRegistrationDto {
     private String coverLetter;
     @JsonProperty("portfolio_link")
     private String portfolioLink;
+    private String status;
+    private boolean isEliminated;
+    private boolean isAccessibleTest;
 }

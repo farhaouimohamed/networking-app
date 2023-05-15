@@ -9,10 +9,19 @@ import java.util.Date;
 public class RecruiterDto {
     private Long id;
     @JsonProperty("foundation_date")
-    private Date foundationDate;
+    private String foundationDate;
     private String website;
     @JsonProperty("head_office")
     private String headOffice;
     private String services;
     private String bio;
+    private String details;
+    private String gouvernorat;
+    @JsonProperty("section_title")
+    private String sectionTitle;
+    @JsonProperty("section_description")
+    private String sectionDescription;
+    private String city;
+    @JsonProperty("is_sponsor")
+    private boolean isSponsor;
 }

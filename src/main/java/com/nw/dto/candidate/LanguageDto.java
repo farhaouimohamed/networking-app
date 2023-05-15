@@ -1,13 +1,15 @@
 package com.nw.dto.candidate;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.*;
+import lombok.Data;
 
 @Data
-public class SkillDto {
+public class LanguageDto {
     private Long id;
-    private String skill;
-    private String programming;
+    @JsonProperty("language_name")
+    private String languageName;
+    @JsonProperty( "level")
+    private String level;
 
     @JsonProperty("candidate_id")
     private Integer candidateId;

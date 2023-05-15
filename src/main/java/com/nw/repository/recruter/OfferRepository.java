@@ -12,6 +12,7 @@ import java.util.List;
 @Repository
 public interface OfferRepository extends JpaRepository<OfferEntity, Long> {
     List<OfferEntity> findByRecruterEntityId(Long recuiterId);
+    OfferEntity findByRecruterEntityIdAndId(Long recuiterId, Long id);
 
     @Query("SELECT o.offerRegistrationEntity FROM OfferEntity o WHERE o.id = :offerId")
     List<OfferRegistrationEntity> findOfferRegistrationsByOfferId(@Param("offerId") Long offerId);

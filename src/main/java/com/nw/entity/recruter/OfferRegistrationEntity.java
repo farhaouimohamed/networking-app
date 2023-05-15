@@ -1,5 +1,6 @@
 package com.nw.entity.recruter;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.nw.entity.candidate.CandidateEntity;
 import lombok.AllArgsConstructor;
@@ -32,11 +33,18 @@ public class OfferRegistrationEntity implements Serializable {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "offer_id")
     private OfferEntity offerEntity;
-
     private String cv;
     @Column(name = "cover_letter")
     private String coverLetter;
     @Column(name = "portfolio_link")
     private String portfolioLink;
+    private String status;
+    private boolean isEliminated;
+    private boolean isAccessibleTest;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "test_registration_id")
+    @JsonIgnore
+    private TestRegistrationOfferEntity testRegistrationOfferEntity;
 
 }

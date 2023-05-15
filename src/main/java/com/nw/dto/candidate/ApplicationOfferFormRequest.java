@@ -2,16 +2,13 @@ package com.nw.dto.candidate;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
+import org.springframework.web.multipart.MultipartFile;
 
 @Data
 public class ApplicationOfferFormRequest {
-    @JsonProperty("candidate_id")
     private Long candidateId;
-    private String cv;
-    @JsonProperty("cover_letter")
-    private String coverLetter;
-    @JsonProperty("portfolio_link")
+    private MultipartFile cv;
+    private MultipartFile coverLetter;
     private String portfolioLink;
-    @JsonProperty("offer_id")
     private Long offerId;
 }

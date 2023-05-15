@@ -21,6 +21,11 @@ public class CandidateMapper {
         candidateEntity.setLastName(candidateDto.getLastName());
         candidateEntity.setFirstName(candidateDto.getFirstName());
         candidateEntity.setLogo(candidateDto.getLogo());
+        candidateEntity.setAboutMe(candidateDto.getAboutMe());
+        candidateEntity.setDetails(candidateDto.getDetails());
+        candidateEntity.setProfession(candidateDto.getProfession());
+        candidateEntity.setGouvernorat(candidateDto.getGouvernorat());
+        candidateEntity.setCity(candidateDto.getCity());
     }
 
     public CandidateDto toCandidateDto(CandidateEntity candidateEntity){
@@ -32,6 +37,13 @@ public class CandidateMapper {
         candidateDto.setLastName(candidateEntity.getLastName());
         candidateDto.setId(candidateEntity.getId());
         candidateDto.setPhoneNumber(candidateEntity.getPhoneNumber());
+        candidateDto.setEmail(candidateEntity.getEmail());
+        candidateDto.setUsername(candidateEntity.getUsername());
+        candidateDto.setAboutMe(candidateEntity.getAboutMe());
+        candidateDto.setDetails(candidateEntity.getDetails());
+        candidateDto.setGouvernorat(candidateDto.getGouvernorat());
+        candidateDto.setProfession(candidateDto.getProfession());
+        candidateDto.setCity(candidateEntity.getCity());
         List<ExperienceDto> experiences = candidateEntity.getExperiences()
                 .stream().map(this::toExperienceDto).collect(Collectors.toList());
         candidateDto.getExperiences().addAll(experiences);
@@ -50,6 +62,11 @@ public class CandidateMapper {
                 .stream().map(this::toSkillDto)
                 .collect(Collectors.toList());
         candidateDto.getSkills().addAll(skills);
+
+        List<LanguageDto> languages = candidateEntity.getLanguages()
+                .stream().map(this::toLanguageDto)
+                .collect(Collectors.toList());
+        candidateDto.getLanguages().addAll(languages);
 
         List<TrainingDto> trainings = candidateEntity.getTrainings()
                 .stream().map(this::toTrainingDto)
@@ -88,10 +105,10 @@ public class CandidateMapper {
     private TrainingDto toTrainingDto(TrainingEntity trainingEntity) {
         modelMapper.typeMap(TrainingEntity.class, TrainingDto.class)
                 .addMapping(TrainingEntity::getId, TrainingDto::setId)
-                .addMapping(TrainingEntity::getTrainingName, TrainingDto::setTrainingName)
+                .addMapping(TrainingEntity::getCenter, TrainingDto::setCenter)
                 .addMapping(TrainingEntity::getEndDate, TrainingDto::setEndDate)
                 .addMapping(TrainingEntity::getStartDate, TrainingDto::setStartDate)
-                .addMapping(TrainingEntity::getDetails, TrainingDto::setDetails)
+                .addMapping(TrainingEntity::getDiploma, TrainingDto::setDiploma)
                 .addMapping(training -> training.getCandidateEntity().getId(), TrainingDto::setCandidateId);
         return modelMapper.map(trainingEntity, TrainingDto.class);
     }
@@ -99,10 +116,10 @@ public class CandidateMapper {
         modelMapper.typeMap(TrainingDto.class, TrainingEntity.class)
                 .addMapping(TrainingDto::getCandidateId, (training, id) -> training.getCandidateEntity().setId((Long) id))
                 .addMapping(TrainingDto::getId, TrainingEntity::setId)
-                .addMapping(TrainingDto::getTrainingName, TrainingEntity::setTrainingName)
+                .addMapping(TrainingDto::getCenter, TrainingEntity::setCenter)
                 .addMapping(TrainingDto::getEndDate, TrainingEntity::setEndDate)
                 .addMapping(TrainingDto::getStartDate, TrainingEntity::setStartDate)
-                .addMapping(TrainingDto::getDetails, TrainingEntity::setDetails);
+                .addMapping(TrainingDto::getDiploma, TrainingEntity::setDiploma);
         modelMapper.map(trainingDto, trainingEntity);
     }
 
@@ -111,7 +128,7 @@ public class CandidateMapper {
                 .addMapping(ProjectEntity::getId, ProjectDto::setId)
                 .addMapping(ProjectEntity::getContent, ProjectDto::setContent)
                 .addMapping(ProjectEntity::getTitle, ProjectDto::setTitle)
-                .addMapping(ProjectEntity::getImage, ProjectDto::setImage)
+                .addMapping(ProjectEntity::getImage, ProjectDto::setPathImage)
                 .addMapping(project -> project.getCandidateEntity().getId(), ProjectDto::setCandidateId);
         return modelMapper.map(projectEntity, ProjectDto.class);
     }
@@ -120,15 +137,14 @@ public class CandidateMapper {
                 .addMapping(ProjectDto::getCandidateId, (project, id) -> project.getCandidateEntity().setId((Long) id))
                 .addMapping(ProjectDto::getId, ProjectEntity::setId)
                 .addMapping(ProjectDto::getContent, ProjectEntity::setContent)
-                .addMapping(ProjectDto::getTitle, ProjectEntity::setTitle)
-                .addMapping(ProjectDto::getImage, ProjectEntity::setImage);
+                .addMapping(ProjectDto::getTitle, ProjectEntity::setTitle);
         modelMapper.map(projectDto, projectEntity);
     }
 
     private SkillDto toSkillDto(SkillEntity skillEntity) {
         modelMapper.typeMap(SkillEntity.class, SkillDto.class)
                 .addMapping(SkillEntity::getId, SkillDto::setId)
-                .addMapping(SkillEntity::getSoftware, SkillDto::setSoftware)
+                .addMapping(SkillEntity::getSkill, SkillDto::setSkill)
                 .addMapping(SkillEntity::getProgramming, SkillDto::setProgramming)
                 .addMapping(skill -> skill.getCandidateEntity().getId(), SkillDto::setCandidateId);
         return modelMapper.map(skillEntity, SkillDto.class);
@@ -136,7 +152,7 @@ public class CandidateMapper {
     public void toSkillEntity(SkillEntity skillEntity, SkillDto skillDto){
         modelMapper.typeMap(SkillDto.class, SkillEntity.class)
                 .addMapping(SkillDto::getCandidateId, (skill, id) -> skill.getCandidateEntity().setId((Long) id))
-                .addMapping(SkillDto::getSoftware, SkillEntity::setSoftware)
+                .addMapping(SkillDto::getSkill, SkillEntity::setSkill)
                 .addMapping(SkillDto::getProgramming, SkillEntity::setProgramming)
                 .addMapping(SkillDto::getId, SkillEntity::setId);
         modelMapper.map(skillDto, skillEntity);
@@ -146,11 +162,9 @@ public class CandidateMapper {
         modelMapper.typeMap(BackgroundEntity.class, BackgroundDto.class)
                 .addMapping(BackgroundEntity::getId, BackgroundDto::setId)
                 .addMapping(BackgroundEntity::getDiploma, BackgroundDto::setDiploma)
-                .addMapping(BackgroundEntity::getCity, BackgroundDto::setCity)
                 .addMapping(BackgroundEntity::getStartDate, BackgroundDto::setStartDate)
                 .addMapping(BackgroundEntity::getUniversity, BackgroundDto::setUniversity)
                 .addMapping(BackgroundEntity::getEndDate, BackgroundDto::setEndDate)
-                .addMapping(BackgroundEntity::getDetails, BackgroundDto::setDetails)
                 .addMapping(background -> background.getCandidateEntity().getId(), BackgroundDto::setCandidateId);
         return modelMapper.map(backgroundEntity, BackgroundDto.class);
     }
@@ -158,13 +172,28 @@ public class CandidateMapper {
         modelMapper.typeMap(BackgroundDto.class, BackgroundEntity.class)
                 .addMapping(BackgroundDto::getId, BackgroundEntity::setId)
                 .addMapping(BackgroundDto::getCandidateId, (experienceEntity, id) -> experienceEntity.getCandidateEntity().setId((Long) id))
-                .addMapping(BackgroundDto::getCity, BackgroundEntity::setCity)
                 .addMapping(BackgroundDto::getDiploma, BackgroundEntity::setDiploma)
                 .addMapping(BackgroundDto::getStartDate, BackgroundEntity::setStartDate)
                 .addMapping(BackgroundDto::getUniversity, BackgroundEntity::setUniversity)
-                .addMapping(BackgroundDto::getEndDate, BackgroundEntity::setEndDate)
-                .addMapping(BackgroundDto::getDetails, BackgroundEntity::setDetails);
+                .addMapping(BackgroundDto::getEndDate, BackgroundEntity::setEndDate);
         modelMapper.map(backgroundDto, backgroundEntity);
+    }
+
+    private LanguageDto toLanguageDto(LanguageEntity languageEntity) {
+        modelMapper.typeMap(LanguageEntity.class, LanguageDto.class)
+                .addMapping(LanguageEntity::getId, LanguageDto::setId)
+                .addMapping(LanguageEntity::getLanguageName, LanguageDto::setLanguageName)
+                .addMapping(LanguageEntity::getLevel, LanguageDto::setLevel)
+                .addMapping(language -> language.getCandidateEntity().getId(), LanguageDto::setCandidateId);
+        return modelMapper.map(languageEntity, LanguageDto.class);
+    }
+    public void toLanguageEntity(LanguageEntity languageEntity, LanguageDto languageDto){
+        modelMapper.typeMap(LanguageDto.class, LanguageEntity.class)
+                .addMapping(LanguageDto::getId, LanguageEntity::setId)
+                .addMapping(LanguageDto::getCandidateId, (languauge, id) -> languauge.getCandidateEntity().setId((Long) id))
+                .addMapping(LanguageDto::getLanguageName, LanguageEntity::setLanguageName)
+                .addMapping(LanguageDto::getLevel, LanguageEntity::setLevel);
+        modelMapper.map(languageDto, languageEntity);
     }
 
 }

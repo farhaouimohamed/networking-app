@@ -21,6 +21,9 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.io.File;
+import java.io.IOException;
+
 @Service
 public class AuthenticationServiceImpl implements AuthenticationService {
 
@@ -54,6 +57,22 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         candidate.setAdress(signupCandidateRequest.getAddress());
         candidate.setStatut(CandidateStatutEnum.valueOf(signupCandidateRequest.getStatus()));
         candidate.setPoints(points);
+        candidate.setCity(signupCandidateRequest.getCity());
+        try{
+            String baseDir = System.getProperty("user.dir");
+            File baseDirFile = new File(baseDir);
+            String regsDir = baseDirFile.getParent() + File.separator + "career_bridge/src" + File.separator;
+            String pathImage = "assets" + File.separator + "candidate" + File.separator + "inscription"
+                    + File.separator + "_" + candidate.getUsername() +  File.separator;
+            File localLogoFile = new File(regsDir + pathImage + signupCandidateRequest.getImage().getOriginalFilename());
+            if (!localLogoFile.exists()) {
+                localLogoFile.mkdirs();
+            }
+            signupCandidateRequest.getImage().transferTo(localLogoFile);
+            candidate.setLogo(pathImage + signupCandidateRequest.getImage().getOriginalFilename());
+        } catch (IOException e){
+            e.printStackTrace();
+        }
         RoleEntity candidateRole = roleRepository.findByName(ERole.ROLE_CANDIDATE)
                 .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
         candidate.setRole(candidateRole);
@@ -72,6 +91,21 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         recruiter.setActivityDomain(signupRecruterRequest.getActivityDomain());
         recruiter.setCompanySize(signupRecruterRequest.getCompanySize());
         recruiter.setCity(signupRecruterRequest.getCity());
+        try{
+            String baseDir = System.getProperty("user.dir");
+            File baseDirFile = new File(baseDir);
+            String regsDir = baseDirFile.getParent() + File.separator + "career_bridge/src" + File.separator;
+            String pathImage = "assets" + File.separator + "recruiter" + File.separator + "inscription"
+                    + File.separator + "_" + recruiter.getUsername() +  File.separator;
+            File localLogoFile = new File(regsDir + pathImage + signupRecruterRequest.getLogo().getOriginalFilename());
+            if (!localLogoFile.exists()) {
+                localLogoFile.mkdirs();
+            }
+            signupRecruterRequest.getLogo().transferTo(localLogoFile);
+            recruiter.setLogo(pathImage + signupRecruterRequest.getLogo().getOriginalFilename());
+        } catch (IOException e){
+            e.printStackTrace();
+        }
         RoleEntity recruiterRole = roleRepository.findByName(ERole.ROLE_RECRUTER)
                 .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
         recruiter.setRole(recruiterRole);

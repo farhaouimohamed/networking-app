@@ -7,12 +7,14 @@ import com.nw.security.services.UserDetailsImpl;
 import com.nw.service.AuthenticationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.Valid;
 import java.util.List;
@@ -45,8 +47,8 @@ public class AuthenticationController {
                 new JwtResponse(jwt, userDetails.getId(), userDetails.getUsername(), userDetails.getEmail(), roles));
     }
 
-    @PostMapping("/signup_candidate")
-    public ResponseEntity<?> signUpCandidate(@Valid @RequestBody SignupCandidateRequest signupCandidateRequest) {
+    @PostMapping(value = "/signup_candidate", consumes = MediaType.ALL_VALUE)
+    public ResponseEntity<?> signUpCandidate(@Valid @ModelAttribute SignupCandidateRequest signupCandidateRequest) {
         try {
             UserEntity user = authenticationService.signUpCandidate(signupCandidateRequest);
             return new ResponseEntity<>(user, HttpStatus.OK);
@@ -57,8 +59,8 @@ public class AuthenticationController {
         }
     }
 
-    @PostMapping("/signup_recruiter")
-    public ResponseEntity<?> signUpRecruter(@Valid @RequestBody SignupRecruterRequest signupRecruterRequest) {
+    @PostMapping(value ="/signup_recruiter", consumes = MediaType.ALL_VALUE)
+    public ResponseEntity<?> signUpRecruter(@Valid @ModelAttribute SignupRecruterRequest signupRecruterRequest) {
         try {
             UserEntity user = authenticationService.signUpRecruter(signupRecruterRequest);
             return new ResponseEntity<>(user, HttpStatus.OK);

@@ -8,6 +8,7 @@ import lombok.Setter;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.util.Date;
 import java.util.List;
 
 @Entity
@@ -23,9 +24,14 @@ public class OfferEntity implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "offer_id") private Long id;
-
+    @Column(name = "categorie") private String categorie;
     @Column(name = "titre") private String title;
     @Column(name = "description") private String description;
+    @Column(name = "salaire") private String salaire;
+    @Column(name = "localisation") private String localisation;
+    @Column(name = "nature_de_travail") private String natureDeTravail;
+    @Column(name = "publish_date") private Date publishDate;
+    @Column(name = "profile") private String profile;
 
     @OneToMany(mappedBy = "offerEntity", cascade = CascadeType.ALL)
     @JsonIgnore
